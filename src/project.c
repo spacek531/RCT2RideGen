@@ -12,6 +12,10 @@
 #include <image.h>
 #include "project.h"
 
+#if (defined(_WIN32) || defined(__WIN32__))
+#define mkdir(A, B) mkdir(A)
+#endif
+
 #define M_PI_8 (M_PI/8.0)
 #define M_PI_12 (M_PI/12.0)
 
@@ -577,15 +581,21 @@ system(zip_cmd);//Will fail if id contains special characters
 
 //Delete temporary files
 struct dirent* dent;
+struct stat sb;
+char path[256];
 DIR* dir=opendir("object/images");
 	if(dir!=NULL)
 	{
 		while((dent=readdir(dir))!=NULL)
 		{
+			sprintf(path, "object/images/%s", dent->d_name);
+#ifdef _DIRENT_HAVE_D_TYPE 
 			if(dent->d_type==8)
+#else
+			stat(path,&sb);
+			if ((sb.st_mode & S_IFMT) == S_IFREG)
+#endif
 			{
-			char path[256];
-			sprintf(path,"object/images/%s",dent->d_name);
 			remove(path);
 			}
 		}
